@@ -2,35 +2,101 @@ import React, { Fragment, useState } from "react";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
+import axios from "axios";
+
+import baseUrl from "../utils/baseUrl";
 
 import "../styles/react-draft-wysiwyg.css";
 
 function Home() {
 	const [editorState, setEditorState] = useState(EditorState.createEmpty());
+	const [blockName, setBlockName] = useState("");
+	const [contentFromDB, setContentFromDB] = useState("");
 
-	function onEditorStateChange(editorContent) {
+	function _onEditorStateChange(editorContent) {
 		setEditorState(editorContent);
 		console.log(editorState);
 	}
 
-	const toRaw = editorState => convertToRaw(editorState.getCurrentContent());
+	const _toRaw = editorState => convertToRaw(editorState.getCurrentContent());
 
-	const getHtmlFromRaw = raw => draftToHtml(raw);
+	const _getHtmlFromRaw = raw => draftToHtml(raw);
 
-	function displayHTML() {
-		const raw = toRaw(editorState);
-		const HTML = getHtmlFromRaw(raw);
+	function _displayHTML() {
+		const HTML = _getHtmlFromRaw(contentFromDB);
+		console.log(HTML);
+		return HTML;
+	}
 
-		return alert(HTML);
+	function _handleChange(event) {
+		setBlockName(event.target.value);
+	}
+
+	async function _postRawContent(event) {
+		event.preventDefault();
+		const url = `${baseUrl}/api/content`;
+		const data = _toRaw(editorState);
+		const payload = { params: { name: blockName }};
+
+		try {
+			await axios.post(url, data, payload);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	async function _getRawContent(event) {
+		event.preventDefault();
+		const url = `${baseUrl}/api/content`;
+		const payload = { params: { name: blockName }};
+
+		try {
+			const response = await axios.get(url, payload);
+			const blocks = response.data[0].block;
+			const HTML = _getHtmlFromRaw(blocks);
+			setContentFromDB(HTML);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	function createMarkup() {
+		return {__html: `${contentFromDB}`};
 	}
 
 	return (
 		<Fragment>
 			<Editor
 				editorState={editorState}
-				onEditorStateChange={onEditorStateChange}
+				onEditorStateChange={_onEditorStateChange}
 			/>
-			<button onClick={displayHTML}>Show HTML</button>
+			<div style={{ margin: "20px", border: "1px solid red"}}>
+				<h2>POST</h2>
+				<form onSubmit={_postRawContent} style={{ margin: "20px" }}>
+					<label htmlFor="blockName">Block name:</label>
+					<input onChange={_handleChange} name="blockName" placeholder='Block Name' required />
+					<button style={{ display: "block" }} type='submit'>Submit</button>
+				</form>
+			</div>
+			<div style={{ margin: "20px", border: "1px solid green"}}>
+				<h2>GET</h2>
+				<form onSubmit={_getRawContent} style={{ margin: "20px" }}>
+					<label htmlFor="blockName">Block name:</label>
+					<input onChange={_handleChange} name="blockName" placeholder='Block Name' required />
+					<button style={{ display: "block" }} type='submit'>Submit</button>
+				</form>
+			</div>
+
+			<div style={{ margin: "20px", border: "1px solid green"}}>
+				<h2>INJECTED HTML</h2>
+				{contentFromDB ? <div dangerouslySetInnerHTML={createMarkup()} /> : <div style={{ height: "200px", backgroundColor: "grey"}}/>}
+			</div>
+
+			<div style={{ margin: "20px", border: "1px solid green"}}>
+				<h2>HTML structure</h2>
+				{contentFromDB ? <div>{contentFromDB}</div>: <div style={{ height: "200px", backgroundColor: "grey" }}/>}
+			</div>
+
 		</Fragment>
 	);
 }

@@ -1,4 +1,6 @@
 module.exports = {
 	extends: "@workwithizzi/eslint-config-react",
-	rules: {}
+	rules: {
+		"require-atomic-updates": 0
+	}
 };
