@@ -15,5 +15,8 @@
 		"react": "16.11.0",
 		"react-dom": "16.11.0",
 		"react-draft-wysiwyg": "^1.13.2"
+	},
+	"devDependencies": {
+		"@workwithizzi/eslint-config-react": "^0.0.2"
 	}
 }
