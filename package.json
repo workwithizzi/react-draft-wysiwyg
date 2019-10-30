@@ -1,5 +1,5 @@
 {
-	"name": "rich-text-editor",
+	"name": "react-draft-wysiwyg",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
@@ -16,8 +16,7 @@
 		"mongoose": "^5.7.7",
 		"next": "9.1.1",
 		"react": "16.11.0",
-		"react-dom": "16.11.0",
-		"react-draft-wysiwyg": "^1.13.2"
+		"react-dom": "16.11.0"
 	},
 	"devDependencies": {
 		"@workwithizzi/eslint-config-react": "^0.0.2"

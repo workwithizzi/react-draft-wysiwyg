@@ -1,17 +1,21 @@
-import React, { Fragment, useState } from "react";
-import { EditorState, convertToRaw } from "draft-js";
-import { Editor } from "react-draft-wysiwyg";
+import React, { Fragment, useState, useEffect } from "react";
+import { Editor, EditorState, RichUtils, convertToRaw } from "draft-js";
 import draftToHtml from "draftjs-to-html";
 import axios from "axios";
 
 import baseUrl from "../utils/baseUrl";
 
-import "../styles/react-draft-wysiwyg.css";
+import "draft-js/dist/Draft.css";
 
 function Home() {
 	const [editorState, setEditorState] = useState(EditorState.createEmpty());
 	const [blockName, setBlockName] = useState("");
 	const [contentFromDB, setContentFromDB] = useState("");
+	const [editorRenderState, setEditorRenderState] = useState(false);
+
+	useEffect(() => {
+		setEditorRenderState(true);
+	}, []);
 
 	function _onEditorStateChange(editorContent) {
 		setEditorState(editorContent);
@@ -21,12 +25,6 @@ function Home() {
 	const _toRaw = editorState => convertToRaw(editorState.getCurrentContent());
 
 	const _getHtmlFromRaw = raw => draftToHtml(raw);
-
-	function _displayHTML() {
-		const HTML = _getHtmlFromRaw(contentFromDB);
-		console.log(HTML);
-		return HTML;
-	}
 
 	function _handleChange(event) {
 		setBlockName(event.target.value);
@@ -64,12 +62,31 @@ function Home() {
 		return {__html: `${contentFromDB}`};
 	}
 
+
+	function handleKeyCommand(command, editorState) {
+		const newState = RichUtils.handleKeyCommand(editorState, command);
+		if (newState) {
+			this.onChange(newState);
+			return "handled";
+		}
+		return "not-handled";
+	}
+
+	function _onBoldClick() {
+		_onEditorStateChange(RichUtils.toggleInlineStyle(editorState, "BOLD"));
+	}
+
 	return (
 		<Fragment>
-			<Editor
-				editorState={editorState}
-				onEditorStateChange={_onEditorStateChange}
-			/>
+			{editorRenderState ?
+				<Fragment>
+					<button onClick={_onBoldClick}>Bold</button>
+					<Editor
+						editorState={editorState}
+						handleKeyCommand={handleKeyCommand}
+						onChange={_onEditorStateChange}
+					/>
+				</Fragment> : null}
 			<div style={{ margin: "20px", border: "1px solid red"}}>
 				<h2>POST</h2>
 				<form onSubmit={_postRawContent} style={{ margin: "20px" }}>
