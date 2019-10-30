@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import { EditorState, convertToRaw } from "draft-js";
 import { Editor } from "react-draft-wysiwyg";
 import draftToHtml from "draftjs-to-html";
@@ -13,6 +13,12 @@ function Home() {
 	const [blockName, setBlockName] = useState("");
 	const [contentFromDB, setContentFromDB] = useState("");
 
+	const [editorRenderState, setEditorRenderState] = useState(false);
+
+	useEffect(() => {
+		setEditorRenderState(true);
+	}, []);
+
 	function _onEditorStateChange(editorContent) {
 		setEditorState(editorContent);
 		console.log(editorState);
@@ -21,12 +27,6 @@ function Home() {
 	const _toRaw = editorState => convertToRaw(editorState.getCurrentContent());
 
 	const _getHtmlFromRaw = raw => draftToHtml(raw);
-
-	function _displayHTML() {
-		const HTML = _getHtmlFromRaw(contentFromDB);
-		console.log(HTML);
-		return HTML;
-	}
 
 	function _handleChange(event) {
 		setBlockName(event.target.value);
@@ -66,10 +66,14 @@ function Home() {
 
 	return (
 		<Fragment>
-			<Editor
-				editorState={editorState}
-				onEditorStateChange={_onEditorStateChange}
-			/>
+			{
+				editorRenderState ?
+					<Editor
+						editorState={editorState}
+						onEditorStateChange={_onEditorStateChange}
+					/> : null
+			}
+
 			<div style={{ margin: "20px", border: "1px solid red"}}>
 				<h2>POST</h2>
 				<form onSubmit={_postRawContent} style={{ margin: "20px" }}>
